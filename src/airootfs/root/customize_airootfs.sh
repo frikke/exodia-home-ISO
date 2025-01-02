@@ -1,10 +1,33 @@
 #!/usr/bin/env bash
 
+#####################################
+#                                   #
+#  @author      : 00xWolf           #
+#    GitHub    : @mmsaeed509       #
+#    Developer : Mahmoud Mohamed   #
+#  﫥  Copyright : Exodia OS         #
+#                                   #
+#####################################
+
 ## Script to perform several important tasks before `makeExodiaISO` create filesystem image. ##
 
 set -e -u
 
 ## -------------------------------------------------------------- ##
+
+## Fix Initrd Generation in Installed System ##
+cat > "/etc/mkinitcpio.d/linux.preset" <<- _EOF_
+	# mkinitcpio preset file for the 'linux' package
+	ALL_kver="/boot/vmlinuz-linux"
+	ALL_config="/etc/mkinitcpio.conf"
+	PRESETS=('default' 'fallback')
+	#default_config="/etc/mkinitcpio.conf"
+	default_image="/boot/initramfs-linux.img"
+	#default_options=""
+	#fallback_config="/etc/mkinitcpio.conf"
+	fallback_image="/boot/initramfs-linux-fallback.img"
+	fallback_options="-S autodetect"    
+_EOF_
 
 ## Enable Chaotic AUR ##
 pacman-key --init
@@ -17,8 +40,13 @@ sed -i -e 's#SHELL=.*#SHELL=/bin/zsh#g' /etc/default/useradd
 ## Copy Few Configs Into Root Dir ##
 rdir="/root/.config"
 sdir="/etc/skel"
-if [[ ! -d "$rdir" ]]; then
-	mkdir "$rdir"
+
+if [[ ! -d "$rdir" ]];
+	
+	then
+		
+		mkdir "$rdir"
+
 fi
 
 rconfig=(
@@ -26,14 +54,22 @@ rconfig=(
 	'alacritty' 'bspwm' 'geany' 'gtk-3.0' 
 	'Kvantum' 'neofetch' 'qt5ct' 'ranger' 
 	'Thunar' 'xfce4' 'nvim' 'caja' 'cava' 
-	'rofi' 'gtk-2.0' 'dunst' 'sxhkd' 
+	'rofi' 'gtk-2.0' 'dunst' 'sxhkd' 'i3'
 	'networkmanager-dmenu' 'mimeapps.list'
 )
 
-for cfg in "${rconfig[@]}"; do
-	if [[ -e "$sdir/.config/$cfg" ]]; then
-		cp -rf "$sdir"/.config/"$cfg" "$rdir"
-	fi
+for cfg in "${rconfig[@]}";
+	
+	do
+		
+		if [[ -e "$sdir/.config/$cfg" ]];
+			
+			then
+				
+				cp -rf "$sdir"/.config/"$cfg" "$rdir"
+
+		fi
+		
 done
 
 rcfg=(
@@ -46,10 +82,18 @@ rcfg=(
 
 )
 
-for cfile in "${rcfg[@]}"; do
-	if [[ -e "$sdir/$cfile" ]]; then
-		cp -rf "$sdir"/"$cfile" /root
-	fi
+for cfile in "${rcfg[@]}";
+	
+	do
+	
+		if [[ -e "$sdir/$cfile" ]];
+			
+			then
+				
+				cp -rf "$sdir"/"$cfile" /root
+
+		fi
+		
 done
 
 ## make eDEX-UI executable ## 
@@ -61,12 +105,8 @@ runuser -l liveuser -c 'xdg-user-dirs-gtk-update'
 xdg-user-dirs-update
 xdg-user-dirs-gtk-update
 
-## launch Help app on installed system instead of launching welcome app ##
-
-sed -i -e 's/exodia-welcome/exodia-help/g' /etc/skel/.config/bspwm/bspwmrc
-
-## fix exodia-grub-theme ##
-# cp -r /usr/share/grub/themes/exodia /boot/grub/themes/
-# sudo grub-mkconfig -o /boot/grub/grub.cfg
+## disable `exodia-welcome` and enable `exodia-assistant` ##
+sed -i 's/exodia-welcome/exodia-assistant/g' /etc/skel/.config/bspwm/bspwmrc
+sed -i 's/exodia-welcome/exodia-assistant/g' /etc/skel/.config/i3/bin/autostart.sh
 
 ## -------------------------------------------------------------- ##
